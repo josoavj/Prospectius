@@ -9,4 +9,3 @@
 
 - **[Aina Maminirina](https://github.com/AinaMaminirina18)**
 - **[Josoa Vonjiniaina](https://github.com/josoavj)**
-
