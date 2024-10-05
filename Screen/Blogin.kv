@@ -1,0 +1,53 @@
+MDScreen:
+    name : "before login"
+
+    MDFloatLayout:
+
+        Image:
+            source: app.CLM
+            pos_hint:{"center_x":.15, "center_y":.8}
+            size_hint: .2, .2
+
+        Image:
+            source: app.CL
+            pos_hint:{"center_x":.85, "center_y":.8}
+            size_hint: .25, .25
+
+        MDLabel:
+            text: app.name
+            pos_hint:{"center_x":.5, "center_y":.53}
+            halign: 'center'
+            font_size: 33
+            font_name: 'poppins-bold'
+
+        MDLabel:
+            text: app.description
+            pos_hint:{"center_x":.5, "center_y":.47}
+            halign: 'center'
+            font_size: 15
+            font_name: 'poppins-bold'
+
+        MDRectangleFlatButton:
+            pos_hint:{"center_x":.5 , "center_y":.3}
+            md_bg_color:'#B3F844'
+            text: 'SE CONNECTER'
+            font_size: 20
+            font_name: 'poppins-bold'
+            size_hint: .2, .1
+            theme_text_color: 'Custom'
+            text_color: 'white'
+            line_color:'#B3F844'
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "Login"
+
+        MDTextButton:
+            text: 'Creer un compte'
+            color: '#56B5FB'
+            pos_hint:{"center_x":.5 , "center_y":.2}
+            font_name: 'poppins-bold'
+            font_size: 20
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "Create Account"
+

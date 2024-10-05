@@ -1,0 +1,80 @@
+MDScreen:
+    name: "Home page"
+
+    MDFloatLayout:
+        md_bg_color: '#56B5FB'
+        size_hint:.25, 1
+        orientation:'vertical'
+
+        Image:
+            source: app.CLM
+            pos_hint:{"center_x":.5, "center_y":.85}
+            size_hint: .5, .5
+
+        MDLabel:
+            text: 'Prospectius'
+            pos_hint:{"center_x":.8, "center_y":.75}
+            font_name: 'poppins-bold'
+            font_size: 20
+
+        MDTextButton:
+            pos_hint:{"center_x":.428,"center_y":.6}
+            text:'Acceuil'
+            theme_text_color:'Custom'
+            text_color: '#FFFFFF'
+            font_name:"poppins"
+            font_size: 20
+
+        MDTextButton:
+            pos_hint:{"center_x":.45,"center_y":.52}
+            text:'Nouveau'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 20
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "New client"
+
+        MDTextButton:
+            pos_hint:{"center_x":.373,"center_y":.44}
+            text:'Suivi'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 20
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "Suivi"
+                app.add_datatables()
+
+        MDFillRoundFlatIconButton:
+            pos_hint:{"center_x":.5,"center_y":.1}
+            md_bg_color:'#56B5FB'
+            icon: './Assets/logout.png'
+            icon_size: '20sp'
+            icon_color: 'black'
+            text:'Deconnecter'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 20
+            size_hint: .5,None
+            on_release:
+                root.manager.transition.direction = "right"
+                app.show_dialog('deco')
+
+    MDBoxLayout:
+        pos_hint: {"center_x":.65}
+        size_hint:.8, 1
+        orientation : 'vertical'
+
+        ScrollView:
+            id:grille
+            size_hint: .9, .5
+            do_scroll_x: False
+
+
+
+
+
