@@ -1,0 +1,277 @@
+MDScreen:
+    name : "New client"
+
+    MDFloatLayout:
+        md_bg_color: '#56B5FB'
+        size_hint:.25, 1
+        orientation:'vertical'
+
+        Image:
+            source: app.CLM
+            pos_hint:{"center_x":.5, "center_y":.85}
+            size_hint: .5, .5
+
+        MDLabel:
+            text: 'Prospectius'
+            pos_hint:{"center_x":.8, "center_y":.75}
+            font_name: 'poppins-bold'
+            font_size: 20
+
+        MDTextButton:
+            pos_hint:{"center_x":.428,"center_y":.6}
+            text:'Acceuil'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 20
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "Home page"
+
+        MDTextButton:
+            pos_hint:{"center_x":.45,"center_y":.52}
+            text:'Nouveau'
+            theme_text_color:'Custom'
+            text_color: '#FFFFFF'
+            font_name:"poppins"
+            font_size: 20
+
+        MDTextButton:
+            pos_hint:{"center_x":.373,"center_y":.44}
+            text:'Suivi'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 20
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "Suivi"
+                app.add_datatables()
+
+        MDFillRoundFlatIconButton:
+            pos_hint:{"center_x":.5,"center_y":.1}
+            md_bg_color:'#56B5FB'
+            icon: './Assets/logout.png'
+            icon_size: '20sp'
+            icon_color: 'black'
+            text:'Deconnecter'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            spacing: dp(5)
+            font_size: 20
+            size_hint: .5,None
+            on_release:
+                root.manager.transition.direction = "right"
+                app.show_dialog('deco')
+
+    MDFloatLayout:
+        md_bg_color: '#56B5FB'
+        pos_hint: {'center_x':.62, 'center_y': .5}
+        size_hint: .7, .95
+        radius: [10]
+        MDLabel:
+            id: title
+            text: "Ajout d'un nouveau prospecteur"
+            font_name: 'poppins'
+            font_size: 17
+            pos_hint: {'center_x':.55, 'center_y': .93}
+
+        MDLabel:
+            text: "Nom"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": .55, "center_y":.88}
+
+        MDTextField:
+            id: nom
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .225, "center_y":.81}
+            size_hint:.35, None
+            radius: [10]
+
+        MDLabel:
+            text: "Date"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": 1.07, "center_y":.88}
+
+        MDTextField:
+            id: date
+            disabled: True
+            mode: 'fill'
+            font_name: 'poppins'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            pos_hint:{"center_x": .75, "center_y":.81}
+            size_hint:.35, None
+            radius: [10]
+
+        MDIconButton:
+            icon: './Assets/calendar.png'
+            pos_hint:{"center_x": .9, "center_y":.81}
+            on_release:
+                app.show_date_picker()
+
+        MDLabel:
+            text: "Prenom"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": .55, "center_y":.72}
+
+        MDTextField:
+            id: prenom
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .225, "center_y":.65}
+            size_hint:.35, None
+            radius: [10]
+
+        MDLabel:
+            text: "Accèpte"
+            font_name: 'poppins-bold'
+            font_size: 15
+            pos_hint:{"center_x": 1, "center_y":.65}
+
+        MDCheckbox:
+            id: ok
+            pos_hint: {'center_x':.48, 'center_y':.65}
+            size_hint: .1, .1
+            group: 'group'
+            active: True
+
+        MDLabel:
+            text: "En attente"
+            font_name: 'poppins-bold'
+            font_size: 15
+            pos_hint:{"center_x": 1.17, "center_y":.65}
+
+        MDCheckbox:
+            id: wait
+            pos_hint: {'center_x':.65, 'center_y':.65}
+            size_hint: .1, .1
+            group: 'group'
+
+        MDLabel:
+            text: "Refuse"
+            font_name: 'poppins-bold'
+            font_size: 15
+            pos_hint:{"center_x": 1.35, "center_y":.65}
+
+        MDCheckbox:
+            id: no
+            pos_hint: {'center_x':.83, 'center_y':.65}
+            size_hint: .1, .1
+            group: 'group'
+
+        MDLabel:
+            text: "Adresse"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": .55, "center_y":.56}
+
+        MDTextField:
+            id: address
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .5, "center_y":.49}
+            size_hint:.9, None
+            radius: [10]
+
+        MDLabel:
+            text: "Adresse mail"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": .55, "center_y":.4}
+
+        MDTextField:
+            id: email
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .25, "center_y":.33}
+            size_hint:.4, None
+            validator : 'email'
+            radius: [10]
+
+        MDLabel:
+            text: "Numéro"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": 1.075, "center_y":.4}
+
+        MDTextField:
+            id: number
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .75, "center_y":.33}
+            size_hint:.4, None
+            radius: [10]
+
+        MDLabel:
+            text: "Résumé de la discussion"
+            font_name: 'poppins'
+            font_size: 15
+            pos_hint:{"center_x": .55, "center_y":.24}
+
+        MDTextField:
+            id: summary
+            mode: 'fill'
+            fill_color_normal: 'white'
+            line_color_normal: 'white'
+            line_color_focus: 'white'
+            text_color_focus: 'black'
+            font_name: 'poppins'
+            pos_hint:{"center_x": .5, "center_y":.17}
+            size_hint:.9, None
+            radius: [10]
+
+        MDRectangleFlatButton:
+            pos_hint:{"center_x":.85,"center_y":.07}
+            md_bg_color:'#FF3333'
+            line_color: '#FF3333'
+            text:'Annuler'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 16
+            size_hint: .18,.08
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "Home page"
+                app.clear('new')
+
+        MDRectangleFlatButton:
+            pos_hint:{"center_x": .6,"center_y": .07}
+            md_bg_color:'#FFEE55'
+            text:'Enregistrer'
+            line_color: '#FFEE55'
+            theme_text_color:'Custom'
+            text_color: 'black'
+            font_name:"poppins"
+            font_size: 16
+            size_hint: .18,.08
+            on_release:
+                app.add_new_client(nom.text, date.text, prenom.text, address.text, email.text,number.text, summary.text, ok.active, wait.active, no.active)

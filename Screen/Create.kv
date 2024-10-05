@@ -1,0 +1,173 @@
+MDScreen
+    name: 'Create Account'
+    MDFloatLayout:
+        md_bg_color: '#56B5FB'
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        size_hint:.8, .8
+        radius: dp(10)
+
+        MDLabel:
+            text: 'CREATION DE VOTRE COMPTE'
+            font_size: 15
+            font_name: 'poppins-bold'
+            pos_hint:{"center_x": .88, "center_y":.9}
+
+        MDLabel:
+            text: 'Veuillez remplir le formulaire suivant pour la création de votre compte'
+            font_size: 15
+            font_name: 'poppins'
+            pos_hint:{"center_x": .73, "center_y":.83}
+
+        MDFloatLayout:
+            MDLabel:
+                text: 'Nom'
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": .68, "center_y":.9}
+
+            MDTextField:
+                id: nom
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .355, "center_y":.82}
+                size_hint:.35, None
+                radius: [10]
+
+            MDLabel:
+                text: "Nom d'utilisateur"
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": 1.2, "center_y":.9}
+
+            MDTextField:
+                id: user
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .875, "center_y":.82}
+                size_hint:.35, None
+                radius: [10]
+
+            MDLabel:
+                text: 'Prenom'
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": .68, "center_y":.7}
+
+            MDTextField:
+                id: prenom
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .355, "center_y":.62}
+                size_hint:.35, None
+                radius: [10]
+
+            MDLabel:
+                text: 'Entrez votre mot de passe'
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": 1.2, "center_y":.7}
+
+            MDTextField:
+                id: password
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .875, "center_y":.62}
+                size_hint:.35, None
+                password: True
+                radius: [10]
+
+            MDLabel:
+                text: 'Adresse mail'
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": .68, "center_y":.5}
+
+            MDTextField:
+                id: email
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .355, "center_y":.42}
+                size_hint:.35, None
+                radius: [10]
+                validator: 'email'
+
+            MDIconButton:
+                icon: './Assets/eye.png'
+                pos_hint:{"center_x": 1.02, "center_y":.62}
+                on_release:
+                    self.icon = "./Assets/eye.png" if self.icon == "eye-off" else "eye-off"
+                    password.password = False if password.password is True else True
+
+            MDLabel:
+                text: 'Confirmer votre mot de passe'
+                font_name: 'poppins'
+                font_size: 13
+                pos_hint:{"center_x": 1.2, "center_y":.5}
+
+            MDTextField:
+                id: confirm
+                mode: 'fill'
+                fill_color_normal: 'white'
+                line_color_normal: 'white'
+                line_color_focus: 'white'
+                text_color_focus: 'black'
+                font_name: 'poppins'
+                pos_hint:{"center_x": .875, "center_y":.42}
+                size_hint:.35, None
+                password: True
+                radius: [10]
+
+            MDIconButton:
+                icon: './Assets/eye.png'
+                pos_hint:{"center_x": 1.02, "center_y":.42}
+                on_release:
+                    self.icon = "./Assets/eye.png" if self.icon == "eye-off" else "eye-off"
+                    confirm.password = False if confirm.password is True else True
+
+            MDRectangleFlatButton:
+                pos_hint:{"center_x":.75,"center_y":.25}
+                md_bg_color:'#FF3333'
+                line_color: '#FF3333'
+                text:'Annuler'
+                theme_text_color:'Custom'
+                text_color: 'black'
+                font_name:"poppins"
+                font_size: 16
+                size_hint: .17,.1
+                on_release:
+                    root.manager.transition.direction = "right"
+                    root.manager.current = "before login"
+                    app.clear('create')
+
+            MDRectangleFlatButton:
+                pos_hint:{"center_x": .964,"center_y": .25}
+                md_bg_color:'#FFFFFF'
+                text:'Creer'
+                line_color: 'white'
+                theme_text_color:'Custom'
+                text_color: 'black'
+                font_name:"poppins"
+                font_size: 16
+                size_hint: .17,.1
+                on_release:
+                    app.new_account(nom.text, prenom.text, email.text, user.text, password.text, confirm.text)
