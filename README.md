@@ -13,6 +13,7 @@
 ### Cloning
 
 - **Add dependency:**
+
   - **Python Virtual env:** `python -m venv /path/to/new/virtual/environment`
   - **Kivy:** `pip install kivy`
   - **Kivymd:** `pip install kivymd`
