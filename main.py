@@ -36,12 +36,13 @@ connection = mysql.connector.connect(
 
 
 def reverse_date(ex_date):
-    Y, M, D = str(ex_date).split('-')
-    date = f'{D}-{M}-{Y}'
+    y, m, d = str(ex_date).split('-')
+    date = f'{d}-{m}-{y}'
     return date
 
 
 class Prospect(MDApp):
+    copyright = '©Copyright @Dev-Corps 2024'
     name = 'PROSPECTIUS'
     description = 'Logiciel de suivi de prospection'
     CLM = './Assets/CLM.jpg'
@@ -55,14 +56,14 @@ class Prospect(MDApp):
         self.icon = self.CLM
         ecran = ScreenManager()
         ecran.add_widget(Builder.load_file('./Screen/Blogin.kv'))
-        ecran.add_widget(Builder.load_file('./Screen/Login.kv'))
         ecran.add_widget(Builder.load_file('./Screen/Create.kv'))
+        ecran.add_widget(Builder.load_file('./Screen/Login.kv'))
         ecran.add_widget(Builder.load_file('./Screen/Home.kv'))
         ecran.add_widget(Builder.load_file('./Screen/New.kv'))
         ecran.add_widget(Builder.load_file('./Screen/Suivi.kv'))
         return ecran
 
-    def show_dialog(self, indice):
+    def show_dialog(self, indice, data):
         deconnexion = MDDialog(
             md_bg_color='#56B5FB',
             title='Deconnexion',
@@ -80,22 +81,53 @@ class Prospect(MDApp):
                                on_release=self.close_dialog)]
         )
 
+        modif = MDDialog(
+            md_bg_color='#56B5FB',
+            title='Informations sur le prospect',
+            type='custom',
+            content_cls=MDBoxLayout(
+                MDLabel(text=f'Date: {str(data[0])}', pos_hint={'center_x': 1.2, 'center_y': .1}),
+                MDLabel(text=f"Nom de l'entreprise: {data[1]}", font_size=20),
+                MDLabel(text=f"Identifiant de l'entreprise: {data[2]}", font_size=15),
+                MDLabel(text=f'Adresse email: {data[3]}', font_size=15),
+                MDLabel(text=f'Numéro: {data[4]}', font_size=15),
+                MDLabel(text=f'Adresse: {data[5]}', font_size=15),
+                size_hint_y=None,
+                spacing='12dp',
+                orientation='vertical',
+                height='120dp'
+            ),
+
+            buttons=[
+                MDRaisedButton(text='Modifier',
+                               md_bg_color='#B3F844',
+                               theme_text_color='Custom',
+                               text_color='black',
+                               on_press=lambda modif: self.update_info(data)),
+                MDRaisedButton(text="Supprimer",
+                               md_bg_color='#FF3333',
+                               theme_text_color='Custom',
+                               text_color='black',
+                               on_release=lambda effacer: self.show_dialog('suppression', data)),
+                MDRaisedButton(text="Annuler",
+                               md_bg_color='#FFEE55',
+                               theme_text_color='Custom',
+                               text_color='black',
+                               on_release=self.close_dialog)
+            ]
+        )
+
         if indice == 'deco':
             self.dialog = deconnexion
-            self.dialog.open()
 
-        if indice != 'deco':
-            self.dialog = modif = MDDialog(
+        if indice == "suppression":
+            self.close_dialog()
+            self.dialog = MDDialog(
                     md_bg_color='#56B5FB',
-                    title='Informations sur le prospect',
+                    title=f'Suppression ',
                     type='custom',
                     content_cls=MDBoxLayout(
-                        MDLabel(text=f'Date: {str(indice[0])}', pos_hint={'center_x':1.2,'center_y':.1}),
-                        MDLabel(text=f'Nom: {indice[1]}', font_size=20),
-                        MDLabel(text=f'Prenom: {indice[2]}', font_size=15),
-                        MDLabel(text=f'Adresse email: {indice[3]}', font_size=15),
-                        MDLabel(text=f'Numéro: {indice[4]}', font_size=15),
-                        MDLabel(text=f'Adresse: {indice[5]}', font_size=15),
+                        MDLabel(text=f'Voulez vous supprimer les informations sur {data[2]}?', font_size=20),
                         size_hint_y=None,
                         spacing='12dp',
                         orientation='vertical',
@@ -103,24 +135,23 @@ class Prospect(MDApp):
                     ),
 
                     buttons=[
-                        MDRaisedButton(text='Modifier',
+                        MDRaisedButton(text="OUI",
                                        md_bg_color='#B3F844',
                                        theme_text_color='Custom',
                                        text_color='black',
-                                       on_press=lambda modif:self.update_info(indice)),
-                        MDRaisedButton(text="Supprimer",
+                                       on_release=lambda effacer: self.delete(data)),
+                        MDRaisedButton(text="NON",
                                        md_bg_color='#FF3333',
-                                       theme_text_color='Custom',
-                                       text_color='black',
-                                       on_release=lambda effacer: self.delete(indice)),
-                        MDRaisedButton(text="Annuler",
-                                       md_bg_color='#FFEE55',
                                        theme_text_color='Custom',
                                        text_color='black',
                                        on_release=self.close_dialog)
                     ]
-                )
-            self.dialog.open()
+            )
+
+        if indice == 'modification':
+            self.dialog = modif
+
+        self.dialog.open()
 
     def update_info(self, indice):
         check = ['Le client à accepté', 'Sa réponse est encore en attente', 'Le client à refusé']
@@ -198,8 +229,8 @@ class Prospect(MDApp):
             use_pagination=False,
             background_color_header='#B3F844',
             column_data=[('Date', dp(30)),
-                         ("Nom", dp(40)),
-                         ("Prénom", dp(40)),
+                         ("Nom de l'entreprise", dp(40)),
+                         ("Identifiant de l'entreprise", dp(40)),
                          ("Status(Conclusion)", dp(70))],
             row_data=data
         )
@@ -219,7 +250,7 @@ class Prospect(MDApp):
             data = cursor.fetchone()
             self.idp = data[0]
             cursor.execute(get, data)
-            self.show_dialog(cursor.fetchone())
+            self.show_dialog('modification',cursor.fetchone())
 
     def new_account(self, nom, prenom, email, user, mdp, confirm):
         if not nom or not prenom or not email or not user or not mdp or not confirm:
@@ -282,8 +313,8 @@ class Prospect(MDApp):
                            col_force_default=False,
                            adaptive_height=True,
                            size_hint=(1, None),)
-        label = MDLabel(text='Liste des prospections récents',
-                        font_size=20,
+        label = MDLabel(text='Liste des prospections récents :',
+                        font_size=25,
                         pos_hint={"center_x": .5, "center_y": .9},
                         font_name='poppins-bold'
                         )
@@ -332,6 +363,7 @@ class Prospect(MDApp):
                                               size_hint=(.2,1),
                                               line_color='#B3F844',
                                               font_size=13) if conclusion == check[0]
+
             else MDRectangleFlatIconButton(icon='account-clock',
                                            icon_color='black',
                                            text='Encore en attente',
@@ -341,6 +373,7 @@ class Prospect(MDApp):
                                            size_hint=(.2,1),
                                            line_color='#FFEE55',
                                            font_size=13) if conclusion == check[1]
+
             else MDRectangleFlatIconButton(icon='cancel',
                                            icon_color='black',
                                            text='Réfusé',
@@ -386,7 +419,7 @@ class Prospect(MDApp):
 
         if indice == "new":
             for chk in check:
-                nouveau.ids[chk].active= False
+                nouveau.ids[chk].active = False
             for input in new_input:
                 nouveau.ids[input].text = ''
 
@@ -403,7 +436,7 @@ class Prospect(MDApp):
             update = """ UPDATE prospect set dateP=%s, nomP=%s,prenomP=%s,mailP=%s,numberP=%s,adresseP=%s,resumeP=%s,conclusionP=%s
                          WHERE idProspect = %s"""
 
-            conclusion =''
+            conclusion = ''
             if ok:
                 conclusion = 'Le client à accepté'
             if wait:
@@ -411,8 +444,8 @@ class Prospect(MDApp):
             if no:
                 conclusion = 'Le client à refusé'
 
-            D,M,Y = str(date).split('-')
-            datef = f'{Y}-{M}-{D}'
+            d, m, y = str(date).split('-')
+            datef = f'{y}-{m}-{d}'
             with connection.cursor(buffered=True) as cursor:
                 if self.idp == 0:
                     cursor.execute(new, {'date': datef,

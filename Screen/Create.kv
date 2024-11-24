@@ -171,3 +171,8 @@ MDScreen
                 size_hint: .17,.1
                 on_release:
                     app.new_account(nom.text, prenom.text, email.text, user.text, password.text, confirm.text)
+    MDLabel:
+        text:app.copyright
+        font_name:'poppins-bold'
+        font_size: 12
+        pos_hint:{"center_x":.92, "center_y":.05}
