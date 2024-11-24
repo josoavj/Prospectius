@@ -61,3 +61,9 @@ MDScreen:
             size_hint: .2,.07
             on_release:
                 app.log_in(username.text, Password.text)
+
+        MDLabel:
+            text:app.copyright
+            font_name:'poppins-bold'
+            font_size: 12
+            pos_hint:{"center_x":.92, "center_y":.05}
