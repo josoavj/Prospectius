@@ -6,7 +6,7 @@
 
 ## Contributors
 
-- **Organisation:** [Dev-Corps](https://github.com/Dev-Corps)
+- **Organisation:** [APEXNova Labs](https://github.com/APEXNovaLabs)
 - **[Aina Maminirina](https://github.com/AinaMaminirina18)**
 - **[Josoa Vonjiniaina](https://github.com/josoavj)**
 
