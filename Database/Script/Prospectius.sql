@@ -8,8 +8,9 @@ USE Prospectius;
 
 
 /*
-    Juste trois tables:
+    Juste quatre tables:
     - Compte : pour les comptes utilisateurs
+    - Administrateur : pour la gestion de compte admin
     - Prospect : pour les informations du prospect
     - Historique : pour l'historique des prospects devenus clients
 */
