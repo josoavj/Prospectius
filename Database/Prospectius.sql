@@ -22,7 +22,7 @@ CREATE TABLE Prospect (
   numberP varchar(15) NOT NULL,
   adresseP varchar(255) NOT NULL,
   resumeP text DEFAULT NULL,
-  conclusionP varchar(60) 
+  conclusionP varchar(60)
   DEFAULT 'En attente',
   PRIMARY KEY (idProspect),
   UNIQUE KEY mailP (mailP)
