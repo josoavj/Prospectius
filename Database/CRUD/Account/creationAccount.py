@@ -1,10 +1,7 @@
-# Fichier: creation_compte.py
-
 import bcrypt
 import re
 from mysql.connector import Error
-from connexionDB import connect  # Importe la fonction de connexion
-
+from Database.CRUD.connexionDB import connect
 
 # Fonction pour vérifier si le mot de passe correspond aux informations personnelles
 def password_is_personal_info(nom, prenom, username, password):
@@ -67,17 +64,17 @@ def creation_compte(conn):
     username = input("Entrez votre nom d'utilisateur : ")
     # Demander le rôle de l'utilisateur
     while True:
-        role = input("Entrez le rôle (admin/utilisateur) : ").lower()
-        if role in ['admin', 'utilisateur']:
+        role = input("Entrez le rôle (admin/user) : ").lower()
+        if role in ['admin', 'user']:
             break
         else:
-            print("Rôle invalide. Veuillez choisir entre 'admin' ou 'utilisateur'.")
+            print("Rôle invalide. Veuillez choisir entre 'admin' ou 'user'.")
     password = get_valid_password(nom, prenom, username)
 
     try:
         cursor = conn.cursor()
         query = """
-                INSERT INTO Compte (nom_compte, prenom_compte, email, nom_utilisateur, mot_de_passe_hache, role_compte)
+                INSERT INTO Compte (nom_compte, prenom_compte, email, nom_utilisateur, password, role_compte)
                 VALUES (%s, %s, %s, %s, %s, %s) \
                 """
         cursor.execute(query, (nom, prenom, email, username, password.decode('utf-8'), role))
@@ -87,7 +84,7 @@ def creation_compte(conn):
         print(f"Erreur lors de la création du compte : {e}")
         # Gérer l'erreur si l'email existe déjà
         if e.errno == 1062:  # Numéro d'erreur pour les doublons
-            print("Cet email est déjà utilisé. Veuillez en choisir un autre.")
+            print("Cet email est déjà utilisé ou le nom/prénom est déjà pris. Veuillez en choisir un autre.")
         conn.rollback()  # Annule les modifications en cas d'erreur
 
 
@@ -170,7 +167,7 @@ def update_compte(conn):
             updates.append("nom_utilisateur = %s")
             params.append(username)
         if password_hashed:
-            updates.append("mot_de_passe_hache = %s")
+            updates.append("password = %s")
             params.append(password_hashed.decode('utf-8'))
 
         if updates:
@@ -197,7 +194,7 @@ def suppression_compte(conn):
     try:
         cursor = conn.cursor()
         # On vérifie si le mot de passe admin est correct
-        cursor.execute("SELECT mot_de_passe_hache FROM Compte WHERE role_compte = 'admin'")
+        cursor.execute("SELECT password FROM Compte WHERE role_compte = 'admin'")
         admin_passwords = cursor.fetchall()
 
         is_admin_password_correct = False
