@@ -343,16 +343,21 @@ class Prospect(MDApp):
                     self.connection.rollback()
 
     def log_in(self, user, password):
-        if not self.connection: return
+        """
+        Gère la connexion de l'utilisateur.
+        """
+        if not self.connection:
+            return
         if not user or not password:
-            toast('Completer tous les champs')
+            toast('Compléter tous les champs')
         else:
             login = """
-                    SELECT password, role_compte
-                    FROM Compte
-                    WHERE nom_utilisateur = %s \
-                    """
-            with self.connection.cursor(buffered=True) as cursor:
+                SELECT password, role_compte
+                FROM Compte
+                WHERE nom_utilisateur = %s
+            """
+            cursor = self.connection.cursor(buffered=True)
+            try:
                 cursor.execute(login, (user,))
                 user_data = cursor.fetchone()
                 if user_data:
@@ -368,7 +373,8 @@ class Prospect(MDApp):
                         toast('Nom d\'utilisateur ou mot de passe incorrect.')
                 else:
                     toast('Nom d\'utilisateur ou mot de passe incorrect.')
-
+            finally:
+                cursor.close()
     def add_card(self):
         if not self.connection: return
         query = """SELECT date_creation, \
