@@ -96,10 +96,10 @@ class Prospect(MDApp):
         # Établir la connexion à la base de données
         try:
             self.connection = mysql.connector.connect(
-                user='Prospection',
-                password='prospect',
+                user='sudoted',
+                password='100805Josh',
                 host='localhost',
-                database='prospectius'
+                database='Prospectius'
             )
             print("Connexion à la base de données réussie !")
         except Error as e:
