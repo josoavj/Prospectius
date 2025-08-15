@@ -1,4 +1,4 @@
-MDScreen
+MDScreen:
     name: 'Create Account'
     MDFloatLayout:
         md_bg_color: '#56B5FB'
@@ -26,7 +26,7 @@ MDScreen
                 pos_hint:{"center_x": .68, "center_y":.9}
 
             MDTextField:
-                id: nom
+                id: nom_compte
                 mode: 'fill'
                 fill_color_normal: 'white'
                 line_color_normal: 'white'
@@ -44,7 +44,7 @@ MDScreen
                 pos_hint:{"center_x": 1.2, "center_y":.9}
 
             MDTextField:
-                id: user
+                id: nom_utilisateur
                 mode: 'fill'
                 fill_color_normal: 'white'
                 line_color_normal: 'white'
@@ -62,7 +62,7 @@ MDScreen
                 pos_hint:{"center_x": .68, "center_y":.7}
 
             MDTextField:
-                id: prenom
+                id: prenom_compte
                 mode: 'fill'
                 fill_color_normal: 'white'
                 line_color_normal: 'white'
@@ -162,7 +162,7 @@ MDScreen
             MDRectangleFlatButton:
                 pos_hint:{"center_x": .964,"center_y": .25}
                 md_bg_color:'#FFFFFF'
-                text:'Creer'
+                text:'Créer'
                 line_color: 'white'
                 theme_text_color:'Custom'
                 text_color: 'black'
@@ -170,7 +170,7 @@ MDScreen
                 font_size: 16
                 size_hint: .17,.1
                 on_release:
-                    app.new_account(nom.text, prenom.text, email.text, user.text, password.text, confirm.text)
+                    app.new_account(nom_compte.text, prenom_compte.text, email.text, nom_utilisateur.text, password.text, confirm.text)
     MDLabel:
         text:app.copyright
         font_name:'poppins-bold'
