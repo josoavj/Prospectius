@@ -1,7 +1,3 @@
-# Fichier: main.py
-# Fichier mis à jour pour corriger les chemins de police
-# ainsi que les requêtes SQL selon la nouvelle base de données.
-
 import bcrypt
 import re
 import mysql.connector
