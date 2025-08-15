@@ -1,69 +1,95 @@
 MDScreen:
     name: 'Login'
 
+    # Layout principal pour organiser les éléments
     MDFloatLayout:
 
+        # Bouton de retour avec une icône de flèche
         MDIconButton:
             icon: 'arrow-left'
-            pos_hint:{"center_x":.05, "center_y":.95}
+            pos_hint: {"center_x": .05, "center_y": .95}
             on_release:
+                # Gère la navigation vers l'écran précédent
                 root.manager.transition.direction = "right"
                 root.manager.current = "before login"
-                app.clear('login')
+                app.clear('login') # Nettoie les champs de l'écran
+
+        # Image de l'utilisateur
         Image:
             source: './Assets/User.jpg'
-            pos_hint:{"center_x":.5, "center_y":.8}
+            pos_hint: {"center_x": .5, "center_y": .8}
             size_hint: .2, .2
 
+        # Champ de texte pour le nom d'utilisateur (nom_utilisateur)
         MDTextField:
             id: username
             mode: 'fill'
-            hint_text: "Nom d'utilisateur "
+            hint_text: "Nom d'utilisateur"
             hint_text_color_normal: 'black'
             text_color_focus: 'black'
-            font_name:"poppins"
-            pos_hint:{"center_x":.5,"center_y":.5}
+            font_name: "poppins"
+            pos_hint: {"center_x": .5, "center_y": .5}
             fill_color_normal: '#D9D9D9'
             line_color_normal: 'grey'
-            size_hint: .2,None
-            radius:[10]
+            size_hint: .2, None
+            radius: [10]
+            # Ce champ est lié à la colonne `nom_utilisateur` de la table `Compte`
 
+        # Champ de texte pour le mot de passe (password)
         MDTextField:
             id: Password
             mode: 'fill'
             hint_text: 'Mot de passe'
             hint_text_color_normal: 'black'
             text_color_focus: 'black'
-            font_name:"poppins"
-            pos_hint:{"center_x":.5,"center_y":.38}
+            font_name: "poppins"
+            pos_hint: {"center_x": .5, "center_y": .38}
             line_color_normal: 'white'
             fill_color_normal: '#D9D9D9'
-            size_hint: .2,None
-            password: True
-            radius:[10]
+            size_hint: .2, None
+            password: True # Masque les caractères saisis
+            radius: [10]
+            # Ce champ est lié à la colonne `password` de la table `Compte`
 
+        # Bouton pour afficher/masquer le mot de passe
         MDIconButton:
             icon: './Assets/eye.png'
-            pos_hint:{"center_x": .58, "center_y":.37}
+            pos_hint: {"center_x": .58, "center_y": .37}
             on_release:
                 self.icon = "./Assets/eye.png" if self.icon == "eye-off" else "eye-off"
-                Password.password = False if Password.password is True else True
+                Password.password = not Password.password
 
+        # Label pour afficher les messages d'erreur de connexion
+        MDLabel:
+            id: login_error_label
+            text: ""
+            theme_text_color: 'Custom'
+            text_color: (1, 0, 0, 1) # Rouge pour les erreurs
+            font_name: 'poppins'
+            font_size: 12
+            halign: 'center'
+            pos_hint: {"center_x": .5, "center_y": .31}
+            size_hint: .2, None
+
+        # Bouton de connexion
         MDRectangleFlatButton:
-            pos_hint:{"center_x":.5,"center_y":.23}
-            md_bg_color:'#56B5FB'
-            text:'CONNECTER'
-            theme_text_color:'Custom'
+            pos_hint: {"center_x": .5, "center_y": .23}
+            md_bg_color: '#56B5FB'
+            text: 'CONNECTER'
+            theme_text_color: 'Custom'
             text_color: 'black'
             line_color: '#56B5FB'
-            font_name:"poppins-bold"
+            font_name: "poppins-bold"
             font_size: 15
-            size_hint: .2,.07
+            size_hint: .2, .07
             on_release:
+                # Appelle la fonction de connexion dans votre fichier Python
                 app.log_in(username.text, Password.text)
+                # Remarque : La logique de connexion se trouve dans le code Python, pas dans ce fichier KV.
 
+        # Label de copyright
         MDLabel:
-            text:app.copyright
-            font_name:'poppins-bold'
+            text: app.copyright
+            font_name: 'poppins-bold'
             font_size: 12
-            pos_hint:{"center_x":.92, "center_y":.05}
+            pos_hint: {"center_x": .92, "center_y": .05}
