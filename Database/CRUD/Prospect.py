@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 Système de Gestion des Prospects Prospectius
-Auteur: Claude (basé sur la BD de josoavj)
 Version: 1.0 - Système asynchrone complet
 
 Fonctionnalités:
@@ -811,14 +809,14 @@ class ProspectiusUtils:
     def validate_email(email: str) -> bool:
         """Valide un email"""
         import re
-        pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
+        pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
         return re.match(pattern, email) is not None
 
     @staticmethod
     def validate_phone(phone: str) -> bool:
         """Valide un numéro de téléphone"""
         import re
-        pattern = r'^[0-9+\-\s()]+
+        pattern = r'^[0-9+\-\s()]+$'
         return re.match(pattern, phone) is not None
 
     @staticmethod
@@ -899,8 +897,8 @@ async def exemple_utilisation():
     DB_CONFIG = {
         'host': 'localhost',
         'port': 3306,
-        'user': 'votre_utilisateur',
-        'password': 'votre_mot_de_passe',
+        'user': 'Prospectius',
+        'password': 'Prospectius',
         'db': 'Prospectius',
         'charset': 'utf8mb4'
     }
@@ -1174,12 +1172,11 @@ async def main():
     print("🚀 Démarrage du système Prospectius...")
 
     # Configuration de votre base de données
-    # REMPLACEZ par vos vraies informations de connexion
     DB_CONFIG = {
         'host': 'localhost',
         'port': 3306,
-        'user': 'root',  # Remplacez par votre utilisateur
-        'password': 'password',  # Remplacez par votre mot de passe
+        'user': 'Prospectius',
+        'password': 'Prospectius',
         'db': 'Prospectius',
         'charset': 'utf8mb4'
     }
