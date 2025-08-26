@@ -20,8 +20,8 @@
 ## Contributors
 
 - **Organisation:** [APEXNova Labs](https://github.com/APEXNovaLabs)
-- **[Aina Maminirina](https://github.com/AinaMaminirina18)**
-- **[Josoa Vonjiniaina](https://github.com/josoavj)**
+- **Front-end :** **[Aina Maminirina](https://github.com/AinaMaminirina18)**
+- **Back-end :** **[Josoa Vonjiniaina](https://github.com/josoavj)**
 
 ### Cloning
 
