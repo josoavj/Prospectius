@@ -425,7 +425,7 @@ def main():
         return
 
     current_user_id = None
-    
+
     # Vérification et proposition de création d'un premier admin
     try:
         cursor = conn.cursor()
