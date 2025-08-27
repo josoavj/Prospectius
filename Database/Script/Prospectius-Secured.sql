@@ -1,29 +1,32 @@
 /*
-*    Script optimisé pour la base de données du projet Prospectius
-*    Auteur : josoavj (optimisé par Claude)
-*    Version : 2.0 - Optimisée avec sécurité renforcée et fonctionnalités avancées
-*/
+ * Script optimisé pour la base de données du projet Prospectius
+ * Auteur : josoavj
+ * Version : 2.0 - Normalisation, sécurité et efficacité accrues
+ */
 
 CREATE DATABASE IF NOT EXISTS Prospectius CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE Prospectius;
 
--- =====================================================
--- TABLES PRINCIPALES
--- =====================================================
+--
+-- Table pour la normalisation des rôles
+--
+CREATE TABLE Role (
+  id_role INT AUTO_INCREMENT PRIMARY KEY,
+  nom_role VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT NULL
+);
 
 --
--- Structure optimisée de la table 'Compte'
+-- Structure optimisée de la table 'Compte' (sans le salt)
 --
 CREATE TABLE Compte (
   id_compte INT AUTO_INCREMENT PRIMARY KEY,
   nom_compte VARCHAR(50) NOT NULL,
   prenom_compte VARCHAR(50) NOT NULL,
   nom_utilisateur VARCHAR(100) NOT NULL UNIQUE,
-  email VARCHAR(100) NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  salt VARCHAR(32) NOT NULL, -- Pour le hachage sécurisé des mots de passe
-  role_compte ENUM('admin', 'user', 'manager') NOT NULL DEFAULT 'user',
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL, -- Inclut le sel (ex: Bcrypt)
   statut_compte ENUM('actif', 'inactif', 'suspendu') NOT NULL DEFAULT 'actif',
   derniere_connexion DATETIME NULL,
   tentatives_connexion TINYINT DEFAULT 0,
@@ -33,23 +36,33 @@ CREATE TABLE Compte (
   created_by INT NULL,
   updated_by INT NULL,
 
-  CONSTRAINT UQ_email_compte UNIQUE (email),
-  CONSTRAINT CHK_password_length CHECK (CHAR_LENGTH(password) >= 8),
+  CONSTRAINT CHK_password_length CHECK (CHAR_LENGTH(password_hash) >= 60), -- Longueur Bcrypt
   CONSTRAINT CHK_email_format CHECK (email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
   CONSTRAINT FK_compte_created_by FOREIGN KEY (created_by) REFERENCES Compte(id_compte) ON DELETE SET NULL,
   CONSTRAINT FK_compte_updated_by FOREIGN KEY (updated_by) REFERENCES Compte(id_compte) ON DELETE SET NULL
 );
 
 --
--- Table Administrateur optimisée
+-- Table de jointure pour les rôles des comptes
 --
-CREATE TABLE Administrateur (
-  id_admin INT PRIMARY KEY,
-  niveau_acces ENUM('super_admin', 'admin', 'admin_lecture') NOT NULL DEFAULT 'admin',
-  permissions JSON NULL, -- Permissions spécifiques sous format JSON
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE Compte_Role (
+  id_compte_fk INT NOT NULL,
+  id_role_fk INT NOT NULL,
+  PRIMARY KEY (id_compte_fk, id_role_fk),
+  CONSTRAINT FK_compte_role_compte FOREIGN KEY (id_compte_fk) REFERENCES Compte(id_compte) ON DELETE CASCADE,
+  CONSTRAINT FK_compte_role_role FOREIGN KEY (id_role_fk) REFERENCES Role(id_role) ON DELETE CASCADE
+);
 
-  CONSTRAINT FK_admin_compte FOREIGN KEY (id_admin) REFERENCES Compte(id_compte) ON DELETE CASCADE
+--
+-- Table pour normaliser les adresses
+--
+CREATE TABLE Adresse (
+  id_adresse INT AUTO_INCREMENT PRIMARY KEY,
+  ligne1 VARCHAR(255) NOT NULL,
+  ligne2 VARCHAR(255) NULL,
+  code_postal VARCHAR(10) NULL,
+  ville VARCHAR(100) NULL,
+  pays VARCHAR(50) DEFAULT 'Madagascar'
 );
 
 --
@@ -60,12 +73,9 @@ CREATE TABLE Prospect (
   date_creation DATE DEFAULT (CURRENT_DATE),
   nom_prospect VARCHAR(50) NOT NULL,
   prenom_prospect VARCHAR(50) NOT NULL,
-  email_prospect VARCHAR(100) NOT NULL,
+  email_prospect VARCHAR(100) NOT NULL UNIQUE,
   telephone_prospect VARCHAR(20) NOT NULL,
-  adresse_prospect VARCHAR(255) NOT NULL,
-  code_postal VARCHAR(10) NULL,
-  ville VARCHAR(100) NULL,
-  pays VARCHAR(50) DEFAULT 'Madagascar',
+  id_adresse_fk INT NOT NULL,
   resume_prospect TEXT DEFAULT NULL,
   statut_prospect ENUM('accepté', 'en attente', 'refusé', 'en_cours_traitement') DEFAULT 'en attente',
   priorite ENUM('basse', 'normale', 'haute', 'urgente') DEFAULT 'normale',
@@ -78,8 +88,7 @@ CREATE TABLE Prospect (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   updated_by INT NULL,
 
-  CONSTRAINT UQ_email_prospect UNIQUE (email_prospect),
-  CONSTRAINT CHK_email_prospect_format CHECK (email_prospect REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
+  CONSTRAINT FK_prospect_adresse FOREIGN KEY (id_adresse_fk) REFERENCES Adresse(id_adresse) ON DELETE RESTRICT,
   CONSTRAINT CHK_telephone_format CHECK (telephone_prospect REGEXP '^[0-9+\\-\\s()]+$'),
   CONSTRAINT CHK_valeur_estimee CHECK (valeur_estimee >= 0),
   CONSTRAINT FK_compte FOREIGN KEY (id_compte_fk) REFERENCES Compte(id_compte) ON DELETE SET NULL,
@@ -87,7 +96,7 @@ CREATE TABLE Prospect (
 );
 
 --
--- Table Historique optimisée avec plus de détails
+-- Table Historique optimisée avec un lien vers la cause
 --
 CREATE TABLE Historique (
   id_historique INT AUTO_INCREMENT PRIMARY KEY,
@@ -96,8 +105,9 @@ CREATE TABLE Historique (
   nouveau_statut ENUM('accepté', 'en attente', 'refusé', 'en_cours_traitement') NOT NULL,
   date_changement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   commentaire TEXT NULL,
-  valeur_finale DECIMAL(15,2) NULL, -- Valeur finale si accepté
+  valeur_finale DECIMAL(15,2) NULL,
   id_compte_modificateur INT NULL,
+  id_action_fk INT NULL, -- Lien vers Communication ou Tache
 
   CONSTRAINT FK_historique_prospect FOREIGN KEY (id_prospect_fk) REFERENCES Prospect(id_prospect) ON DELETE CASCADE,
   CONSTRAINT FK_historique_compte FOREIGN KEY (id_compte_modificateur) REFERENCES Compte(id_compte) ON DELETE SET NULL
@@ -107,9 +117,6 @@ CREATE TABLE Historique (
 -- TABLES SUPPLÉMENTAIRES POUR FONCTIONNALITÉS AVANCÉES
 -- =====================================================
 
---
--- Table pour les communications avec les prospects
---
 CREATE TABLE Communication (
   id_communication INT AUTO_INCREMENT PRIMARY KEY,
   id_prospect_fk INT NOT NULL,
@@ -124,9 +131,6 @@ CREATE TABLE Communication (
   CONSTRAINT FK_communication_compte FOREIGN KEY (id_compte_fk) REFERENCES Compte(id_compte) ON DELETE RESTRICT
 );
 
---
--- Table pour les tâches de suivi
---
 CREATE TABLE Tache (
   id_tache INT AUTO_INCREMENT PRIMARY KEY,
   id_prospect_fk INT NOT NULL,
@@ -143,9 +147,6 @@ CREATE TABLE Tache (
   CONSTRAINT FK_tache_compte FOREIGN KEY (id_compte_assigne) REFERENCES Compte(id_compte) ON DELETE RESTRICT
 );
 
---
--- Table pour l'audit trail (journalisation des actions)
---
 CREATE TABLE Journal_Audit (
   id_audit INT AUTO_INCREMENT PRIMARY KEY,
   table_concernee VARCHAR(50) NOT NULL,
@@ -160,9 +161,6 @@ CREATE TABLE Journal_Audit (
   CONSTRAINT FK_audit_compte FOREIGN KEY (id_compte_utilisateur) REFERENCES Compte(id_compte) ON DELETE SET NULL
 );
 
---
--- Table pour les sessions utilisateur
---
 CREATE TABLE Session_Utilisateur (
   id_session VARCHAR(128) PRIMARY KEY,
   id_compte_fk INT NOT NULL,
@@ -179,38 +177,35 @@ CREATE TABLE Session_Utilisateur (
 -- INDEX POUR OPTIMISATION DES PERFORMANCES
 -- =====================================================
 
--- Index existant
-CREATE INDEX idx_statut_prospect ON Prospect (statut_prospect);
-
--- Nouveaux index pour optimisation
 CREATE INDEX idx_prospect_date_creation ON Prospect (date_creation);
 CREATE INDEX idx_prospect_priorite ON Prospect (priorite);
 CREATE INDEX idx_prospect_compte ON Prospect (id_compte_fk);
 CREATE INDEX idx_prospect_statut_priorite ON Prospect (statut_prospect, priorite);
 CREATE INDEX idx_compte_email ON Compte (email);
 CREATE INDEX idx_compte_statut ON Compte (statut_compte);
-CREATE INDEX idx_compte_role ON Compte (role_compte);
 CREATE INDEX idx_historique_prospect_date ON Historique (id_prospect_fk, date_changement);
 CREATE INDEX idx_communication_prospect_date ON Communication (id_prospect_fk, date_communication);
 CREATE INDEX idx_tache_assignee_echeance ON Tache (id_compte_assigne, date_echeance);
 CREATE INDEX idx_tache_statut ON Tache (statut_tache);
 CREATE INDEX idx_audit_table_date ON Journal_Audit (table_concernee, date_action);
 CREATE INDEX idx_session_compte_actif ON Session_Utilisateur (id_compte_fk, actif);
+CREATE INDEX idx_prospect_id_adresse ON Prospect (id_adresse_fk);
 
 -- =====================================================
 -- VUES POUR FACILITER LES REQUÊTES
 -- =====================================================
 
---
--- Vue pour les prospects avec informations du gestionnaire
---
-CREATE VIEW v_prospect_complet AS
+CREATE OR REPLACE VIEW v_prospect_complet AS
 SELECT
   p.id_prospect,
   p.nom_prospect,
   p.prenom_prospect,
   p.email_prospect,
   p.telephone_prospect,
+  a.ligne1 AS adresse_prospect,
+  a.code_postal,
+  a.ville,
+  a.pays,
   p.statut_prospect,
   p.priorite,
   p.valeur_estimee,
@@ -222,12 +217,11 @@ SELECT
   (SELECT COUNT(*) FROM Communication com WHERE com.id_prospect_fk = p.id_prospect) AS nb_communications,
   (SELECT COUNT(*) FROM Tache t WHERE t.id_prospect_fk = p.id_prospect AND t.statut_tache != 'terminee') AS taches_ouvertes
 FROM Prospect p
-LEFT JOIN Compte c ON p.id_compte_fk = c.id_compte;
+LEFT JOIN Compte c ON p.id_compte_fk = c.id_compte
+JOIN Adresse a ON p.id_adresse_fk = a.id_adresse;
 
---
--- Vue pour le tableau de bord des utilisateurs
---
-CREATE VIEW v_dashboard_utilisateur AS
+-- La vue v_dashboard_utilisateur reste inchangée
+CREATE OR REPLACE VIEW v_dashboard_utilisateur AS
 SELECT
   c.id_compte,
   c.nom_compte,
@@ -264,7 +258,8 @@ BEGIN
       'prenom_prospect', NEW.prenom_prospect,
       'email_prospect', NEW.email_prospect,
       'statut_prospect', NEW.statut_prospect,
-      'id_compte_fk', NEW.id_compte_fk
+      'id_compte_fk', NEW.id_compte_fk,
+      'id_adresse_fk', NEW.id_adresse_fk
     ),
     NEW.id_compte_fk
   );
@@ -298,9 +293,6 @@ BEGIN
   END IF;
 END//
 
---
--- Trigger pour verrouillage de compte après tentatives échouées
---
 CREATE TRIGGER tr_compte_verrouillage
 BEFORE UPDATE ON Compte
 FOR EACH ROW
@@ -318,21 +310,11 @@ BEGIN
   END IF;
 END//
 
---
--- Trigger pour nettoyer les sessions expirées
---
-CREATE TRIGGER tr_session_cleanup
-BEFORE INSERT ON Session_Utilisateur
-FOR EACH ROW
-BEGIN
-  DELETE FROM Session_Utilisateur
-  WHERE date_expiration < NOW() OR id_compte_fk = NEW.id_compte_fk;
-END//
 
 DELIMITER ;
 
 -- =====================================================
--- PROCÉDURES STOCKÉES
+-- PROCÉDURES STOCKÉES MISES À JOUR
 -- =====================================================
 
 DELIMITER //
@@ -345,13 +327,13 @@ CREATE PROCEDURE sp_creer_compte(
   IN p_prenom VARCHAR(50),
   IN p_nom_utilisateur VARCHAR(100),
   IN p_email VARCHAR(100),
-  IN p_password VARCHAR(255),
-  IN p_salt VARCHAR(32),
-  IN p_role ENUM('admin', 'user', 'manager'),
+  IN p_password_hash VARCHAR(255),
+  IN p_id_role INT,
   IN p_created_by INT
 )
 BEGIN
   DECLARE v_count INT DEFAULT 0;
+  DECLARE v_id_compte INT;
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
@@ -360,29 +342,23 @@ BEGIN
 
   START TRANSACTION;
 
-  -- Vérifier l'unicité de l'email
-  SELECT COUNT(*) INTO v_count FROM Compte WHERE email = p_email;
+  -- Vérifier l'unicité de l'email et du nom d'utilisateur
+  SELECT COUNT(*) INTO v_count FROM Compte WHERE email = p_email OR nom_utilisateur = p_nom_utilisateur;
   IF v_count > 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cette adresse email est déjà utilisée';
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'L\'email ou le nom d\'utilisateur est déjà utilisé';
   END IF;
 
-  -- Vérifier l'unicité du nom d'utilisateur
-  SELECT COUNT(*) INTO v_count FROM Compte WHERE nom_utilisateur = p_nom_utilisateur;
-  IF v_count > 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ce nom d\'utilisateur est déjà utilisé';
-  END IF;
+  INSERT INTO Compte (nom_compte, prenom_compte, nom_utilisateur, email, password_hash, created_by)
+  VALUES (p_nom, p_prenom, p_nom_utilisateur, p_email, p_password_hash, p_created_by);
 
-  INSERT INTO Compte (nom_compte, prenom_compte, nom_utilisateur, email, password, salt, role_compte, created_by)
-  VALUES (p_nom, p_prenom, p_nom_utilisateur, p_email, p_password, p_salt, p_role, p_created_by);
+  SET v_id_compte = LAST_INSERT_ID();
 
-  -- Si c'est un admin, l'ajouter à la table Administrateur
-  IF p_role = 'admin' THEN
-    INSERT INTO Administrateur (id_admin, niveau_acces) VALUES (LAST_INSERT_ID(), 'admin');
-  END IF;
+  -- Assigner le rôle au compte
+  INSERT INTO Compte_Role (id_compte_fk, id_role_fk) VALUES (v_id_compte, p_id_role);
 
   COMMIT;
 
-  SELECT 'Compte créé avec succès' AS message, LAST_INSERT_ID() AS id_compte;
+  SELECT 'Compte créé avec succès' AS message, v_id_compte AS id_compte;
 END//
 
 --
@@ -395,47 +371,40 @@ CREATE PROCEDURE sp_authentifier_utilisateur(
 )
 BEGIN
   DECLARE v_id_compte INT;
-  DECLARE v_password_hash VARCHAR(255);
+  DECLARE v_password_hash_stored VARCHAR(255);
   DECLARE v_statut VARCHAR(20);
   DECLARE v_tentatives INT;
   DECLARE v_verrouille_jusqu DATETIME;
 
-  -- Récupérer les informations du compte
-  SELECT id_compte, password, statut_compte, tentatives_connexion, compte_verrouille_jusqu
-  INTO v_id_compte, v_password_hash, v_statut, v_tentatives, v_verrouille_jusqu
+  SELECT id_compte, password_hash, statut_compte, tentatives_connexion, compte_verrouille_jusqu
+  INTO v_id_compte, v_password_hash_stored, v_statut, v_tentatives, v_verrouille_jusqu
   FROM Compte
   WHERE email = p_email;
 
-  -- Vérifier si le compte existe
   IF v_id_compte IS NULL THEN
     SELECT 'Identifiants invalides' AS message, FALSE AS succes;
-  -- Vérifier si le compte est verrouillé
   ELSEIF v_verrouille_jusqu IS NOT NULL AND v_verrouille_jusqu > NOW() THEN
     SELECT 'Compte verrouillé temporairement' AS message, FALSE AS succes;
-  -- Vérifier le statut du compte
   ELSEIF v_statut != 'actif' THEN
     SELECT 'Compte inactif' AS message, FALSE AS succes;
-  -- Vérifier le mot de passe
-  ELSEIF p_password_hash = v_password_hash THEN
-    -- Connexion réussie
-    UPDATE Compte
-    SET derniere_connexion = NOW(), tentatives_connexion = 0
-    WHERE id_compte = v_id_compte;
-
-    SELECT 'Connexion réussie' AS message, TRUE AS succes, v_id_compte AS id_compte;
   ELSE
-    -- Mot de passe incorrect
-    UPDATE Compte
-    SET tentatives_connexion = tentatives_connexion + 1
-    WHERE id_compte = v_id_compte;
 
-    SELECT 'Identifiants invalides' AS message, FALSE AS succes;
+    IF p_password_hash = v_password_hash_stored THEN
+      UPDATE Compte
+      SET derniere_connexion = NOW(), tentatives_connexion = 0
+      WHERE id_compte = v_id_compte;
+
+      SELECT 'Connexion réussie' AS message, TRUE AS succes, v_id_compte AS id_compte;
+    ELSE
+      UPDATE Compte
+      SET tentatives_connexion = tentatives_connexion + 1
+      WHERE id_compte = v_id_compte;
+
+      SELECT 'Identifiants invalides' AS message, FALSE AS succes;
+    END IF;
   END IF;
 END//
 
---
--- Procédure pour obtenir les statistiques des prospects
---
 CREATE PROCEDURE sp_statistiques_prospects(
   IN p_id_compte INT,
   IN p_date_debut DATE,
@@ -455,9 +424,6 @@ BEGIN
     AND date_creation BETWEEN p_date_debut AND p_date_fin;
 END//
 
---
--- Procédure pour nettoyer les données obsolètes
---
 CREATE PROCEDURE sp_nettoyage_donnees()
 BEGIN
   DECLARE v_lignes_supprimees INT DEFAULT 0;
@@ -487,9 +453,6 @@ BEGIN
   SELECT CONCAT(v_lignes_supprimees, ' enregistrements supprimés') AS message;
 END//
 
---
--- Procédure pour assigner automatiquement des prospects
---
 CREATE PROCEDURE sp_assigner_prospects_automatiquement()
 BEGIN
   DECLARE done INT DEFAULT FALSE;
@@ -515,7 +478,9 @@ BEGIN
     SELECT c.id_compte INTO v_id_compte_min_charge
     FROM Compte c
     LEFT JOIN Prospect p ON c.id_compte = p.id_compte_fk AND p.statut_prospect IN ('en attente', 'en_cours_traitement')
-    WHERE c.role_compte IN ('user', 'manager') AND c.statut_compte = 'actif'
+    LEFT JOIN Compte_Role cr ON c.id_compte = cr.id_compte_fk
+    LEFT JOIN Role r ON cr.id_role_fk = r.id_role
+    WHERE r.nom_role IN ('user', 'manager') AND c.statut_compte = 'actif'
     GROUP BY c.id_compte
     ORDER BY COUNT(p.id_prospect) ASC
     LIMIT 1;
@@ -544,35 +509,18 @@ DELIMITER ;
 -- DONNÉES INITIALES
 -- =====================================================
 
--- Note: La base de données est créée sans aucun compte par défaut
--- Le premier compte administrateur devra être créé manuellement
--- via l'application Python ou en utilisant la procédure stockée
+INSERT INTO Role (nom_role, description) VALUES
+('admin', 'Administrateur avec tous les droits'),
+('manager', 'Manager de l\'équipe de vente'),
+('user', 'Utilisateur standard pour la gestion des prospects');
 
 -- =====================================================
 -- ÉVÉNEMENTS PLANIFIÉS (optionnel)
 -- =====================================================
 
--- Activer l'ordonnanceur d'événements si nécessaire
--- SET GLOBAL event_scheduler = ON;
-
--- Événement pour nettoyer automatiquement les données obsolètes
+-- L'événement planifié est conservé et est maintenant le seul responsable du nettoyage.
 CREATE EVENT IF NOT EXISTS ev_nettoyage_quotidien
 ON SCHEDULE EVERY 1 DAY
 STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 DAY, '02:00:00')
 DO
   CALL sp_nettoyage_donnees();
-
-/*
-* Script optimisé terminé
-* Fonctionnalités ajoutées :
-* - Sécurité renforcée (hachage des mots de passe, gestion des sessions)
-* - Tables supplémentaires (Communication, Tâche, Journal_Audit, Session_Utilisateur)
-* - Vues pour faciliter les requêtes
-* - Triggers pour automatisation
-* - Procédures stockées pour les opérations complexes
-* - Index optimisés pour les performances
-* - Nettoyage automatique des données
-*
-* IMPORTANT: Aucun compte administrateur n'est créé automatiquement
-* Le premier admin doit être créé via l'application ou manuellement
-*/

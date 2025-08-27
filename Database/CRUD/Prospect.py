@@ -890,6 +890,38 @@ class ProspectiusUtils:
 # EXEMPLE D'UTILISATION
 # =====================================================
 
+async def create_first_admin(manager: ProspectiusManager) -> bool:
+    """Crée le premier administrateur s'il n'existe pas"""
+    try:
+        # Vérifier si un admin existe déjà
+        query = "SELECT COUNT(*) as count FROM Compte WHERE role_compte = 'admin'"
+        result = await manager.db_manager.execute_query(query, fetch='one')
+
+        if result['count'] == 0:
+            print("🔧 Aucun administrateur trouvé, création du premier admin...")
+
+            # Créer le premier admin
+            admin_data = Compte(
+                nom_compte="Admin",
+                prenom_compte="Système",
+                nom_utilisateur="admin",
+                email="admin@prospectius.mg",
+                password="Prospectius",
+                role_compte=RoleCompte.ADMIN
+            )
+
+            admin_id = await manager.auth_manager.create_user(admin_data)
+            print(f"✅ Premier administrateur créé avec l'ID: {admin_id}")
+            return True
+        else:
+            print("✅ Administrateur existant trouvé")
+            return True
+
+    except Exception as e:
+        print(f"❌ Erreur lors de la création de l'admin: {e}")
+        return False
+
+
 async def exemple_utilisation():
     """Exemple d'utilisation du système Prospectius"""
 
@@ -912,8 +944,8 @@ async def exemple_utilisation():
         # === AUTHENTIFICATION ===
         print("=== Test d'authentification ===")
         login_result = await manager.login(
-            "admin@prospectius.com",
-            "motdepasse123",
+            "admin@prospectius.mg",
+            "Prospectius",
             "192.168.1.100"
         )
         print(f"Connexion: {login_result}")
