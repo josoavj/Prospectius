@@ -1,40 +1,12 @@
 import bcrypt
 import re
 import datetime
-from mysql.connector import Error, connect
+from mysql.connector import Error
 
-
-# =====================================================
-# GESTIONNAIRE DE BASE DE DONNÉES ET CONNEXION
-# =====================================================
-
-class DatabaseManager:
-    """
-    Classe pour gérer la connexion et les opérations de base de données.
-    """
-
-    def __init__(self, host, user, password, database):
-        self.config = {
-            'host': host,
-            'user': user,
-            'password': password,
-            'database': database
-        }
-        self.conn = None
-
-    def connect(self):
-        try:
-            self.conn = connect(**self.config)
-            print("✅ Connexion à la base de données réussie!")
-            return self.conn
-        except Error as e:
-            print(f"❌ Erreur de connexion à MySQL : {e}")
-            return None
-
-    def close(self):
-        if self.conn and self.conn.is_connected():
-            self.conn.close()
-            print("✅ Connexion à la base de données fermée.")
+# Utiliser le module de connexion tiers
+# Assurez-vous que le chemin est correct.
+# Pour cet exemple, je suppose que 'connect' est la fonction.
+from Database.CRUD.connexionDB import connect
 
 
 # =====================================================
@@ -52,7 +24,6 @@ def hash_password(password):
     """
     Hache le mot de passe en utilisant Bcrypt.
     """
-    # Bcrypt gère le salage automatiquement
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
@@ -101,7 +72,6 @@ def get_valid_password(nom, prenom, username):
         if password_is_personal_info(nom, prenom, username, password):
             print("❌ Le mot de passe ne doit pas contenir votre nom, prénom ou nom d'utilisateur. Veuillez réessayer.")
             continue
-
         return hash_password(password)
 
 
@@ -184,17 +154,17 @@ def lecture_compte(conn):
     try:
         cursor = conn.cursor()
         query = """
-                SELECT c.id_compte, \
-                       c.nom_compte, \
-                       c.prenom_compte, \
-                       c.email, \
+                SELECT c.id_compte,
+                       c.nom_compte,
+                       c.prenom_compte,
+                       c.email,
                        c.nom_utilisateur,
                        GROUP_CONCAT(r.nom_role SEPARATOR ', ') as roles,
-                       c.statut_compte, \
+                       c.statut_compte,
                        c.derniere_connexion
                 FROM Compte c
-                         LEFT JOIN Compte_Role cr ON c.id_compte = cr.id_compte_fk
-                         LEFT JOIN Role r ON cr.id_role_fk = r.id_role
+                LEFT JOIN Compte_Role cr ON c.id_compte = cr.id_compte_fk
+                LEFT JOIN Role r ON cr.id_role_fk = r.id_role
                 GROUP BY c.id_compte
                 ORDER BY c.created_at DESC
                 """
@@ -446,25 +416,26 @@ def dashboard_utilisateur(conn, user_id=None):
 # =====================================================
 
 def main():
-
-    conn = connect()
+    """
+    Menu principal avec vérification automatique des administrateurs.
+    """
+    conn = connect()  # Utilisation de la fonction connect() du fichier tiers
     if not conn:
         print("Le programme ne peut pas continuer sans connexion à la base de données.")
         return
 
     current_user_id = None
-
+    
     # Vérification et proposition de création d'un premier admin
     try:
         cursor = conn.cursor()
         cursor.execute("""
-                       SELECT COUNT(*)
-                       FROM Compte c
-                                JOIN Compte_Role cr ON c.id_compte = cr.id_compte_fk
-                                JOIN Role r ON cr.id_role_fk = r.id_role
-                       WHERE r.nom_role = 'admin'
-                         AND c.statut_compte = 'actif'
-                       """)
+            SELECT COUNT(*)
+            FROM Compte c
+            JOIN Compte_Role cr ON c.id_compte = cr.id_compte_fk
+            JOIN Role r ON cr.id_role_fk = r.id_role
+            WHERE r.nom_role = 'admin' AND c.statut_compte = 'actif'
+        """)
         admin_count = cursor.fetchone()[0]
 
         if admin_count == 0:
@@ -484,6 +455,11 @@ def main():
                 hashed_password = get_valid_password(nom, prenom, username)
                 role_id = get_role_id(conn, 'admin')
 
+                if not role_id:
+                    print("❌ Rôle 'admin' non trouvé dans la base de données. Impossible de continuer.")
+                    conn.close()
+                    return
+
                 cursor.callproc('sp_creer_compte', [nom, prenom, username, email, hashed_password, role_id, None])
                 for result in cursor.stored_results():
                     row = result.fetchone()
@@ -493,7 +469,8 @@ def main():
 
     except Error as e:
         print(f"❌ Erreur lors de la vérification des administrateurs : {e}")
-        db_manager.close()
+        if conn:
+            conn.close()
         return
 
     while True:
@@ -549,10 +526,12 @@ def main():
                 print("❌ Option invalide. Veuillez réessayer.")
         except Error as e:
             print(f"❌ Erreur de base de données : {e}")
+            conn.rollback() # S'assurer que les transactions sont annulées en cas d'erreur
         except Exception as e:
             print(f"❌ Erreur inattendue : {e}")
 
-
+    if conn:
+        conn.close()
 
 if __name__ == "__main__":
     main()
